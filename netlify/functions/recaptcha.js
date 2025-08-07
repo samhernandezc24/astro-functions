@@ -1,9 +1,28 @@
 export async function handler(event) {
+    const allowedOrigins = [
+        'https://heavy-lift.com.mx',
+        'https://heavy-lift.netlify.app'
+    ];
+
+    const origin = event.headers.origin;
+    const corsOrigin = allowedOrigins.includes(origin) ? origin : '';
+
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    };  
+
+    // OPTIONS (preflight request)
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 204, headers: corsHeaders, body: '' };
+    }
+
     try {
         const data = JSON.parse(event.body);
 
         if (!data.recaptcha) {
-            return { statusCode: 400, body: JSON.stringify({ success: false, error: 'Falta el token recaptcha' }) };
+            return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ success: false, error: 'Falta el token recaptcha' }) };
         }
 
         const secret = process.env.RECAPTCHA_SECRET_KEY;
@@ -23,8 +42,8 @@ export async function handler(event) {
 
         const responseData = await response.json();
 
-        return { statusCode: 200, body: JSON.stringify(responseData) };
+        return { statusCode: 200, headers: corsHeaders, body: JSON.stringify(responseData) };
     } catch (error) {
-        return { statusCode: 500, body: JSON.stringify({ success: false, error: 'Internal error' }) };
+        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ success: false, error: 'Internal error' }) };
     }
 }

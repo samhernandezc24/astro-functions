@@ -3,12 +3,26 @@ import type { Handler } from '@netlify/functions';
 const HUBSPOT_API_URL = 'https://api.hubapi.com/crm/v3/objects/contacts';
 
 export const handler: Handler = async (event) => {
+    const allowedOrigins = [
+        'https://heavy-lift.com.mx',
+        'https://heavy-lift.netlify.app'
+    ];
+
+    const origin = event.headers.origin || '';
+    const corsOrigin = allowedOrigins.includes(origin) ? origin : '';
+
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    }; 
+
     if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+        return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
     if (event.headers['content-type'] !== 'application/json') {
-        return { statusCode: 415, body: JSON.stringify({ error: 'Unsupported Content Type' }) };
+        return { statusCode: 415, headers: corsHeaders, body: JSON.stringify({ error: 'Unsupported Content Type' }) };
     }
 
     try {
@@ -35,13 +49,13 @@ export const handler: Handler = async (event) => {
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error al enviar el contacto a HubSpot:', errorData);
-            return { statusCode: 500, body: JSON.stringify({ success: false, error: errorData }) };
+            return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ success: false, error: errorData }) };
         }
 
-        return { statusCode: 200, body: JSON.stringify({ success: true }) };
+        return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ success: true }) };
 
     } catch (error) {
         console.error('Error interno en la función de contacto:', error);
-        return { statusCode: 500, body: JSON.stringify({ success: false, error: 'Internal error' }) };
+        return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ success: false, error: 'Internal error' }) };
     }
 };

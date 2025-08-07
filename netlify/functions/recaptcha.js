@@ -4,7 +4,7 @@ export async function handler(event) {
         'https://heavy-lift.netlify.app'
     ];
 
-    const origin = event.headers.origin;
+    const origin = event.headers.origin || '';
     const corsOrigin = allowedOrigins.includes(origin) ? origin : '';
 
     const corsHeaders = {

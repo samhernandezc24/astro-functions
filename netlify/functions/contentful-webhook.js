@@ -1,5 +1,6 @@
 export async function handler(event) {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    const NETLIFY_BUILD_HOOK = process.env.NETLIFY_BUILD_HOOK;
     const REPO = 'samhernandezc24/hl_website';
 
     const allowedOrigins = [
@@ -15,6 +16,10 @@ export async function handler(event) {
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
     };  
+
+    if (event.headers['user-agent']?.includes('Netlify')) {
+        return { statusCode: 200, headers: corsHeaders, body: 'Ignorado (procesado directamente por Netlify)' }; 
+    }
 
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, headers: corsHeaders, body: 'Method Not Allowed' };
@@ -32,7 +37,18 @@ export async function handler(event) {
             }),
         });
 
-        return { statusCode: 200, headers: corsHeaders, body: 'Workflow disparado exitosamente 🚀' };
+        setTimeout(async () => {
+            try {
+                await fetch(NETLIFY_BUILD_HOOK, {
+                    method: 'POST',
+                });
+                console.log('Netlify build triggered successfully');
+            } catch (netlifyError) {
+                console.error('Error triggered Netlify build:', netlifyError);
+            }
+        }, 5000);
+
+        return { statusCode: 200, headers: corsHeaders, body: 'Procesado: Github Actions y Netlify Build disparados 🚀' };
     } catch (error) {
         return { statusCode: 500, headers: corsHeaders, body: `Error al disparar workflow: ${error.message}` };        
     }

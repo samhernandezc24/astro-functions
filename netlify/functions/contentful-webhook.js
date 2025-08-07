@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 export async function handler(event) {
     const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     const REPO = 'samhernandezc24/hl_website';

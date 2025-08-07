@@ -51,4 +51,3 @@ export const handler = async (event) => {
         return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ success: false, error: 'Internal error' }) };
     }
 };
-//# sourceMappingURL=contact.js.map
